@@ -1,0 +1,12 @@
+[Unit]
+Description=Python Script that runs on startup
+
+[Service]
+Type=simple
+User=worbots4145
+Restart=always
+RestartSec=3
+ExecStart=/bin/bash /home/worbots4145/2023Vision/vision-service.sh config/cam0Config.json calibration/cam0Calibration.json
+
+[Install]
+WantedBy=multi-user.target

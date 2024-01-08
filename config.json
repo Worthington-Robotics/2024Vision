@@ -1,0 +1,16 @@
+{
+    "CameraId": 0,
+    "TeamNumber": 4145,
+    "ModuleId": 0,
+    "SimMode": false,
+    "ResolutionW": 1280,
+    "ResolutionH": 720,
+    "CameraFPS": 60,
+    "TagSizeinMeters": 0.1524,
+    "UseGStreamer": false,
+    "RunOnce": false,
+    "ProcessVideo": true,
+    "SendPoseData": true,
+    "ShowImage": false,
+    "PrintFPS": true
+}
