@@ -6,7 +6,7 @@ Type=simple
 User=worbots4145
 Restart=always
 RestartSec=3
-ExecStart=/bin/bash ~/2023Vision/vision-worbots.sh
+ExecStart=/bin/bash ~/2024Vision/vision-worbots.sh
 
 [Install]
 WantedBy=multi-user.target
