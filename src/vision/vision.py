@@ -13,7 +13,7 @@ class WorbotsVision:
     poseCalc = PoseCalculator()
     
     axis = np.float32([[3,0,0], [0,3,0], [0,0,-3]]).reshape(-1,3)
-    apriltagDict = cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_APRILTAG_16h5)
+    apriltagDict = cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_APRILTAG_36h11)
     detectorParams = cv2.aruco.DetectorParameters()
     detector = cv2.aruco.ArucoDetector()
 
