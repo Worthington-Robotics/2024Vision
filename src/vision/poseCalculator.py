@@ -6,27 +6,18 @@ from config import WorbotsConfig
 from wpimath.geometry import *
 from robotpy_apriltag import *
 
+# Which field layout to use
+FIELD_LAYOUT = "2024-crescendo.json"
+# How many tags are on the field
+TAG_COUNT = 16
 
 class PoseCalculator:
     config: WorbotsConfig
-    aprilTagLayout = AprilTagFieldLayout("2024-crescendo.json")
+    aprilTagLayout = AprilTagFieldLayout(FIELD_LAYOUT)
     tagPoseArray = np.array([])
-    tagPoseArray = np.append(tagPoseArray, aprilTagLayout.getTagPose(1))
-    tagPoseArray = np.append(tagPoseArray, aprilTagLayout.getTagPose(2))
-    tagPoseArray = np.append(tagPoseArray, aprilTagLayout.getTagPose(3))
-    tagPoseArray = np.append(tagPoseArray, aprilTagLayout.getTagPose(4))
-    tagPoseArray = np.append(tagPoseArray, aprilTagLayout.getTagPose(5))
-    tagPoseArray = np.append(tagPoseArray, aprilTagLayout.getTagPose(6))
-    tagPoseArray = np.append(tagPoseArray, aprilTagLayout.getTagPose(7))
-    tagPoseArray = np.append(tagPoseArray, aprilTagLayout.getTagPose(8))
-    tagPoseArray = np.append(tagPoseArray, aprilTagLayout.getTagPose(9))
-    tagPoseArray = np.append(tagPoseArray, aprilTagLayout.getTagPose(10))
-    tagPoseArray = np.append(tagPoseArray, aprilTagLayout.getTagPose(11))
-    tagPoseArray = np.append(tagPoseArray, aprilTagLayout.getTagPose(12))
-    tagPoseArray = np.append(tagPoseArray, aprilTagLayout.getTagPose(13))
-    tagPoseArray = np.append(tagPoseArray, aprilTagLayout.getTagPose(14))
-    tagPoseArray = np.append(tagPoseArray, aprilTagLayout.getTagPose(15))
-    tagPoseArray = np.append(tagPoseArray, aprilTagLayout.getTagPose(16))
+    for i in range(TAG_COUNT):
+        # + 1 because it starts at one and is inclusive
+        tagPoseArray = np.append(tagPoseArray, aprilTagLayout.getTagPose(i + 1))
 
     def __new__(self):
         return super(PoseCalculator, self).__new__(self)
