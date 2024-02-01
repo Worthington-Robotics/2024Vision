@@ -34,6 +34,7 @@ class WorbotsConfig:
     USE_GPU = False
     # Whether to use exact frame timestamps by querying the camera
     USE_EXACT_TIMESTAMPS = True
+    CAM_EXPOSURE = 1
 
     def __new__(cls, paths: ConfigPaths):
         with open(paths.path, "r") as read_file:
@@ -93,6 +94,9 @@ class WorbotsConfig:
             val = data.get("UseExactTimestamps")
             if val is not None:
                 cls.USE_EXACT_TIMESTAMPS = val
+            val = data.get("CamExposure")
+            if val is not None:
+                cls.CAM_EXPOSURE = val
         return super(WorbotsConfig, cls).__new__(cls)
 
     def __init__(self, paths: ConfigPaths):

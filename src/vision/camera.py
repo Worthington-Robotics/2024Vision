@@ -8,6 +8,8 @@ from threading import Thread, Event
 from config import ConfigPaths, WorbotsConfig
 
 # A frame along with the time it was captured
+
+
 class TimedFrame:
     frame: Any
     timestamp: float
@@ -16,14 +18,16 @@ class TimedFrame:
         self.frame = frame
         self.timestamp = timestamp
 
+
 class WorbotsCamera:
     thread: Thread
     queue = Queue(1)
     stop: Event
-    
+
     def __init__(self, configPaths: ConfigPaths):
         self.stop = Event()
-        self.thread = Thread(target=runCameraThread, args=(self.stop, configPaths, self.queue,), name="Camera Thread", daemon=True)
+        self.thread = Thread(target=runCameraThread, args=(
+            self.stop, configPaths, self.queue,), name="Camera Thread", daemon=True)
         self.thread.start()
 
     def getFrame(self) -> Optional[TimedFrame]:
@@ -31,10 +35,11 @@ class WorbotsCamera:
             return self.queue.get()
         except Empty:
             return None
-        
+
     def stop(self):
         self.stop.set()
         self.thread.join()
+
 
 def runCameraThread(stop: Event, configPaths: ConfigPaths, out: Queue):
     prof = Profile()
@@ -58,7 +63,8 @@ def runCameraThread(stop: Event, configPaths: ConfigPaths, out: Queue):
     if config.PROFILE:
         prof.disable()
         prof.dump_stats("prof/cam_prof")
-        
+
+
 class ThreadCamera:
     worConfig: WorbotsConfig
     cap: cv2.VideoCapture
@@ -70,10 +76,17 @@ class ThreadCamera:
         if self.worConfig.USE_GSTREAMER:
             print("Initializing camera with GStreamer...")
             cmd = ""
+            # Base v4l2 command
+            cmd += f"gst-launch-1.0 -v v4l2src device=/dev/video{self.worConfig.CAMERA_ID} always-copy=false extra_controls=\"c,exposure_auto=false,exposure_absolute={self.worConfig.CAM_EXPOSURE},gain=1,sharpness=0,brightness=0\""
+            # JPEG video
+            cmd += f" ! image/jpeg, width={self.worConfig.RES_W}, height={self.worConfig.RES_H}, format=MJPG, framerate={self.worConfig.CAM_FPS}/1"
+            # Choose decoder based on presence of GPU
             if self.worConfig.USE_GPU:
-                cmd = f"gst-launch-1.0 -v v4l2src device=/dev/video{self.worConfig.CAMERA_ID} ! image/jpeg, width={self.worConfig.RES_W}, height={self.worConfig.RES_H}, format=MJPG, framerate={self.worConfig.CAM_FPS}/1 ! jpegparse ! nvv4l2decoder ! nvvidconv ! video/x-raw,format=I420 ! appsink max-buffers=1 drop=1"
+                cmd += f" ! jpegparse ! nvv4l2decoder ! nvvidconv"
             else:
-                cmd = f"gst-launch-1.0 -v v4l2src device=/dev/video{self.worConfig.CAMERA_ID} always-copy=false extra_controls=\"c,exposure_auto=false,exposure_absolute=1,gain=1,sharpness=0,brightness=0\" ! image/jpeg, width={self.worConfig.RES_W}, height={self.worConfig.RES_H}, format=MJPG, framerate={self.worConfig.CAM_FPS}/1 ! jpegdec ! videoconvert ! video/x-raw,format=I420 ! appsink max-buffers=1 drop=1"
+                cmd += f" ! jpegdec ! videoconvert"
+            # Finalize by converting to I420 and setting the appsink to pipe the data into OpenCV
+            cmd += f" ! video/x-raw,format=I420 ! appsink max-buffers=1 drop=1"
             print("GStreamer command: " + cmd)
 
             self.cap = cv2.VideoCapture(cmd, cv2.CAP_GSTREAMER)
@@ -87,9 +100,12 @@ class ThreadCamera:
             # self.cap.set(cv2.CAP_PROP_BUFFERSIZE, 3)
             # self.cap.set(cv2.CAP_PROP_HW_ACCELERATION, 1.0)
             self.cap.set(cv2.CAP_PROP_FPS, self.worConfig.CAM_FPS)
+            self.cap.set(cv2.CAP_PROP_AUTO_EXPOSURE, 0.0)
+            self.cap.set(cv2.CAP_PROP_EXPOSURE, self.worConfig.CAM_EXPOSURE)
 
         if self.cap.isOpened():
-            print(f"Initialized camera with {self.cap.getBackendName()} backend")
+            print(
+                f"Initialized camera with {self.cap.getBackendName()} backend")
             print(f"Camera running at {self.cap.get(cv2.CAP_PROP_FPS)} fps")
         else:
             print("Failed to initialize camera")
