@@ -15,6 +15,7 @@ class WorbotsTables:
 
     # Config Subscribers
     cameraIdSubscriber: ntcore.IntegerSubscriber
+    exposureSubscriber: ntcore.DoubleSubscriber
 
     def __init__(self, configPaths: ConfigPaths):
         self.config = WorbotsConfig(configPaths)
@@ -33,6 +34,7 @@ class WorbotsTables:
         self.fpsPublisher = table.getDoubleTopic("fps").publish(ntcore.PubSubOptions())
         configTable.getBooleanTopic("liveCalib").publish().set(False)
         self.calibListener = configTable.getBooleanTopic("liveCalib").subscribe(False)
+        self.exposureSubscriber = configTable.getDoubleTopic("Exposure").subscribe(self.config.CAM_EXPOSURE)
 
     def sendPoseDetection(self, poseDetection: Optional[PoseDetection], timestamp: float):
         if poseDetection is None:

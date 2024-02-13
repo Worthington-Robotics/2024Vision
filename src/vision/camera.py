@@ -6,6 +6,7 @@ from cProfile import Profile
 from threading import Thread, Event
 
 from config import ConfigPaths, WorbotsConfig
+from network.tables import WorbotsTables
 
 # A frame along with the time it was captured
 
@@ -24,10 +25,10 @@ class WorbotsCamera:
     queue = Queue(1)
     stop: Event
 
-    def __init__(self, configPaths: ConfigPaths):
+    def __init__(self, configPaths: ConfigPaths, tables: WorbotsTables):
         self.stop = Event()
         self.thread = Thread(target=runCameraThread, args=(
-            self.stop, configPaths, self.queue,), name="Camera Thread", daemon=True)
+            self.stop, configPaths, tables, self.queue,), name="Camera Thread", daemon=True)
         self.thread.start()
 
     def getFrame(self) -> Optional[TimedFrame]:
@@ -41,7 +42,7 @@ class WorbotsCamera:
         self.thread.join()
 
 
-def runCameraThread(stop: Event, configPaths: ConfigPaths, out: Queue):
+def runCameraThread(stop: Event, configPaths: ConfigPaths, tables: WorbotsTables, out: Queue):
     prof = Profile()
     config = WorbotsConfig(configPaths)
     if config.PROFILE:
@@ -56,6 +57,8 @@ def runCameraThread(stop: Event, configPaths: ConfigPaths, out: Queue):
             except Full:
                 print("Drop")
                 pass
+
+        cam.checkConfig(tables)
 
         if config.RUN_ONCE:
             break
@@ -117,6 +120,16 @@ class ThreadCamera:
     def reconnect(self):
         self.cap.release()
         self.initializeCapture()
+
+    # Checks for remote config changes; should be run periodically
+    def checkConfig(self, tables: WorbotsTables):
+        changes = tables.exposureSubscriber.readQueue()
+        # Get the latest config change, modify the config, and reinitialize
+        # the camera
+        if len(changes) > 0:
+            last = changes[len(changes)]
+            self.worConfig.CAM_EXPOSURE = last.value
+            self.reconnect()
 
     def getRawFrame(self) -> Optional[TimedFrame]:
         ret, frame = self.cap.read()

@@ -28,8 +28,9 @@ def main(configPaths: ConfigPaths):
     try:
         output = Output(configPaths)
         vision = WorbotsVision(configPaths)
+        tables = WorbotsTables(configPaths)
 
-        camera = WorbotsCamera(configPaths)
+        camera = WorbotsCamera(configPaths, tables)
         
         # Used so that the printed FPS is only updated every couple of frames so it doesnt look
         # so jittery
