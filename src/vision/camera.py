@@ -73,6 +73,9 @@ class ThreadCamera:
 
     def __init__(self, configPaths: ConfigPaths):
         self.worConfig = WorbotsConfig(configPaths)
+        self.initializeCapture()
+
+    def initializeCapture(self):
         if self.worConfig.USE_GSTREAMER:
             print("Initializing camera with GStreamer...")
             cmd = ""
@@ -93,7 +96,7 @@ class ThreadCamera:
             self.startTime = time.time()
         else:
             print("Initializing camera with default backend...")
-            self.cap = cv2.VideoCapture(0)
+            self.cap = cv2.VideoCapture(self.worConfig.CAMERA_ID)
             self.startTime = time.time()
             self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, self.worConfig.RES_H)
             self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, self.worConfig.RES_W)
@@ -110,6 +113,11 @@ class ThreadCamera:
         else:
             print("Failed to initialize camera")
 
+    # Reconnects the camera
+    def reconnect(self):
+        self.cap.release()
+        self.initializeCapture()
+
     def getRawFrame(self) -> Optional[TimedFrame]:
         ret, frame = self.cap.read()
         if self.worConfig.USE_EXACT_TIMESTAMPS:
@@ -122,4 +130,6 @@ class ThreadCamera:
                 frame = cv2.cvtColor(frame, cv2.COLOR_YUV2BGR_I420)
             return TimedFrame(frame, timestamp)
         else:
+            print("Camera disconnected!")
+            self.reconnect()
             return None
