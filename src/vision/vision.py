@@ -1,5 +1,5 @@
 import cv2
-from typing import Any, List, Union
+from typing import Any, List, Tuple, Union
 import numpy as np
 from config import ConfigPaths, WorbotsConfig
 from wpimath.geometry import *
@@ -33,74 +33,6 @@ class WorbotsVision:
         self.detectorParams.minDistanceToBorder = 10
         self.detector.setDetectorParameters(self.detectorParams)
         self.detector.setDictionary(self.apriltagDict)
-
-    def calibrateCameraImages(self, folderName):
-        images = os.listdir(folderName)
-
-        # Define the board
-        dictionary = cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_5X5_250)
-        board = cv2.aruco.CharucoBoard((11, 8), 0.024, 0.019, dictionary)
-
-        allCharucoCorners: List[np.ndarray] = []
-        allCharucoIds: List[np.ndarray] = []
-
-        for fname in images:
-            img = cv2.imread(os.path.join(folderName, fname))
-            gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-        
-            # Detect corners as well as markers
-            charucoParams = cv2.aruco.CharucoParameters()
-            detectorParams = cv2.aruco.DetectorParameters()
-            detector = cv2.aruco.CharucoDetector(board, charucoParams, detectorParams)
-            (charucoCorners, charucoIds, markerCorners, markerIds) = detector.detectBoard(gray)
-
-            if charucoCorners is not None and charucoIds is not None and len(charucoCorners) > 10:
-                if len(charucoCorners) == len(charucoIds):
-                    allCharucoCorners.append(charucoCorners)
-                    allCharucoIds.append(charucoIds)
-
-        if len(allCharucoCorners) > 0:
-            ret, self.mtx, self.dist, self.rvecs, self.tvecs = cv2.aruco.calibrateCameraCharuco(
-                allCharucoCorners, allCharucoIds, board, gray.shape[::-1], None, None
-            )
-            self.worConfig.saveCameraIntrinsics(self.mtx, self.dist, self.rvecs, self.tvecs)
-            print(ret)
-        else:
-            print("No Charuco corners were detected for calibration.")
-
-    def calibrateCamLive(self):
-        allCharucoCorners: List[np.ndarray] = []
-        allCharucoIds: List[np.ndarray] = []
-        while True:
-            ret, img = self.cap.read()
-            gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-
-            # Define the board
-            dictionary = cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_5X5_250)
-            board = cv2.aruco.CharucoBoard((11, 8), 0.024, 0.019, dictionary)
-
-            # Detect corners as well as markers
-            charucoParams = cv2.aruco.CharucoParameters()
-            detectorParams = cv2.aruco.DetectorParameters()
-            detector = cv2.aruco.CharucoDetector(board, charucoParams, detectorParams)
-            (charucoCorners, charucoIds, markerCorners, markerIds) = detector.detectBoard(gray)
-            if charucoCorners is not None and charucoIds is not None:
-                cv2.aruco.drawDetectedCornersCharuco(img, charucoCorners, charucoIds, (0, 0, 255))
-                if len(charucoCorners) == len(charucoIds):
-                    if (len(charucoCorners) > 10):
-                        allCharucoCorners.append(charucoCorners)
-                        allCharucoIds.append(charucoIds)
-            cv2.imshow("out", img)
-            print(len(allCharucoCorners))
-            if len(allCharucoCorners) > 10:
-                ret, self.mtx, self.dist, self.rvecs, self.tvecs = cv2.aruco.calibrateCameraCharuco(
-                    allCharucoCorners, allCharucoIds, board, gray.shape[::-1], None, None
-                )
-                self.worConfig.saveCameraIntrinsics(self.mtx, self.dist, self.rvecs, self.tvecs)
-                print(ret)
-                break
-
-        
     
     def mainPnP(self):
         while True:
@@ -143,7 +75,7 @@ class WorbotsVision:
             cv2.aruco.drawDetectedMarkers(frame, corners, ids, (0, 0, 255))
         return frame, returnArray
  
-    def processFrame(self, frame: Union[Any, None]) -> (Union[Any, None], Union[PoseDetection, None]):
+    def processFrame(self, frame: Union[Any, None]) -> Tuple[Union[Any, None], Union[PoseDetection, None]]:
         if frame is None:
             return None, None
         
