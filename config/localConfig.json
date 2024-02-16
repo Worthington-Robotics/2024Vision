@@ -1,10 +1,10 @@
 {
-	"CameraId": 0,
+	"CameraId": 1,
 	"TeamNumber": 4145,
 	"ModuleId": 0,
 	"SimMode": true,
-	"ResolutionW": 640,
-	"ResolutionH": 480,
+	"ResolutionW": 1600,
+	"ResolutionH": 1200,
 	"CameraFPS": 30,
 	"TagSizeinMeters": 0.1524,
 	"UseGStreamer": false,

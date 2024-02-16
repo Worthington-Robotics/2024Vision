@@ -61,13 +61,12 @@ def calibrateCamLive(configPaths: ConfigPaths):
 
             print(len(allCharucoCorners))
 
-            if len(allCharucoCorners) > 10:
+            if len(allCharucoCorners) > 50:
                 saveCalibration(worConfig, allCharucoCorners,
                                 allCharucoIds, board, frame)
                 break
         cv2.imshow("out", frame)
         cv2.waitKey(1)
-
 
 def createDetectorAndBoard() -> Tuple[cv2.aruco.CharucoDetector, cv2.aruco.CharucoBoard]:
     dictionary = cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_5X5_250)
