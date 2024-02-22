@@ -161,3 +161,5 @@ cython_debug/
 
 # Profiling
 /prof
+# Camera images
+/camera_images

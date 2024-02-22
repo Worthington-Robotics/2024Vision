@@ -12,6 +12,7 @@ def calibrateCameraImages(folderName, configPaths: ConfigPaths):
     worConfig = WorbotsConfig(configPaths)
 
     images = os.listdir(folderName)
+    print(len(images))
 
     (detector, board) = createDetectorAndBoard()
 
@@ -21,6 +22,8 @@ def calibrateCameraImages(folderName, configPaths: ConfigPaths):
     for frame in images:
         img = cv2.imread(os.path.join(folderName, frame))
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+        cv2.imshow("img", gray)
+        cv2.waitKey(1)
 
         # Detect corners as well as markers
         ret = findCharucos(gray, detector)
@@ -65,6 +68,8 @@ def calibrateCamLive(configPaths: ConfigPaths):
                 saveCalibration(worConfig, allCharucoCorners,
                                 allCharucoIds, board, frame)
                 break
+
+            cv2.imwrite(f"./camera_images/{len(allCharucoCorners)}.jpeg", frame)
         cv2.imshow("out", frame)
         cv2.waitKey(1)
 
@@ -93,7 +98,8 @@ def findCharucos(frame: cv2.Mat, detector: cv2.aruco.CharucoDetector) -> Union[T
 def saveCalibration(worConfig: WorbotsConfig, allCharucoCorners: List[np.ndarray], allCharucoIds: List[np.ndarray], board: cv2.aruco.CharucoBoard, frame: cv2.Mat):
     print(frame.shape)
     ret, mtx, dist, rvecs, tvecs = cv2.aruco.calibrateCameraCharuco(
-        allCharucoCorners, allCharucoIds, board, frame.shape[::-2], None, None
+        allCharucoCorners, allCharucoIds, board, frame.shape[::-1], None, None
     )
     worConfig.saveCameraIntrinsics(mtx, dist, rvecs, tvecs)
+    # Print out the reprojection error in pixels. Should be between 0.1 and 1.0
     print(ret)

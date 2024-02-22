@@ -55,7 +55,7 @@ def runCameraThread(stop: Event, configPaths: ConfigPaths, tables: WorbotsTables
             try:
                 out.put_nowait(frame)
             except Full:
-                print("Drop")
+                # print("Drop")
                 pass
 
         cam.checkConfig(tables)
@@ -83,7 +83,12 @@ class ThreadCamera:
             print("Initializing camera with GStreamer...")
             cmd = ""
             # Base v4l2 command
-            cmd += f"gst-launch-1.0 -v v4l2src device=/dev/video{self.worConfig.CAMERA_ID} always-copy=false extra_controls=\"c,exposure_auto=false,exposure_absolute={self.worConfig.CAM_EXPOSURE},gain=1,sharpness=0,brightness=0\""
+            cmd += f"gst-launch-1.0 -v v4l2src device=/dev/video{self.worConfig.CAMERA_ID} always-copy=false"
+            # Extra camera controls
+            # Convert to 100us units
+            # abs_exposure = int(self.worConfig.CAM_EXPOSURE * 1000 * 1000 / 100)
+            abs_exposure = int(self.worConfig.CAM_EXPOSURE * 312)
+            cmd += f" extra_controls=\"exposure_auto=1,exposure_absolute={abs_exposure}\""
             # JPEG video
             cmd += f" ! image/jpeg, width={self.worConfig.RES_W}, height={self.worConfig.RES_H}, format=MJPG, framerate={self.worConfig.CAM_FPS}/1"
             # Choose decoder based on presence of GPU
@@ -127,7 +132,7 @@ class ThreadCamera:
         # Get the latest config change, modify the config, and reinitialize
         # the camera
         if len(changes) > 0:
-            last = changes[len(changes)]
+            last = changes[len(changes) - 1]
             self.worConfig.CAM_EXPOSURE = last.value
             self.reconnect()
 

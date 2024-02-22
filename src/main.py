@@ -12,7 +12,7 @@ from utils import MovingAverage
 from vision import WorbotsVision
 from network import WorbotsTables
 from config import ConfigPaths, WorbotsConfig
-from vision.calibrate import calibrateCamLive
+from vision.calibrate import calibrateCamLive, calibrateCameraImages
 from vision.camera import WorbotsCamera
 from detection import PoseDetection
 from argparse import ArgumentParser
@@ -156,12 +156,16 @@ if __name__ == '__main__':
     parser.add_argument("-c", "--config-path", default="config.json", help="Path to the config file. Defaults to ./config.json")
     parser.add_argument("-C", "--calibration-path", default="calibration.json", help="Path to the camera calibration file. Defaults to ./calibration.json")
     parser.add_argument("--calibrate", default="false", help="Whether to run in calibration mode. Defaults to false")
+    parser.add_argument("--calibrate-folder", default="false", help="Whether to run in calibration mode from the camera_images folder. Defaults to false")
     args = parser.parse_args()
     print(f"Config path: {args.config_path} Calibration path: {args.calibration_path}")
     print(f"CUDA: {cv2.cuda.getCudaEnabledDeviceCount()}")
     configPaths = ConfigPaths(args.config_path, args.calibration_path)
     calibrate = args.calibrate == "true"
-    if calibrate:
+    calibrateFolder = args.calibrate_folder == "true"
+    if calibrateFolder:
+        calibrateCameraImages("./camera_images", configPaths)
+    elif calibrate:
         calibrateCamLive(configPaths)
     else:
         main(configPaths)
