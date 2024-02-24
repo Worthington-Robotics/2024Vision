@@ -35,6 +35,7 @@ class WorbotsConfig:
     # Whether to use exact frame timestamps by querying the camera
     USE_EXACT_TIMESTAMPS = True
     CAM_EXPOSURE = 1
+    IGNORED_TAGS = []
 
     def __new__(cls, paths: ConfigPaths):
         with open(paths.path, "r") as read_file:
@@ -97,6 +98,9 @@ class WorbotsConfig:
             val = data.get("CamExposure")
             if val is not None:
                 cls.CAM_EXPOSURE = val
+            val = data.get("IgnoredTags")
+            if val is not None:
+                cls.IGNORED_TAGS = val
         return super(WorbotsConfig, cls).__new__(cls)
 
     def __init__(self, paths: ConfigPaths):

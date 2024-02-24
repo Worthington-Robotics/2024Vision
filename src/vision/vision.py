@@ -91,8 +91,10 @@ class WorbotsVision:
         if ids is not None:
             cv2.aruco.drawDetectedMarkers(frame, corners, ids, (0, 0, 255))
             if len(ids) > 0:
-                index = 0
-                for id in ids:
+                for index, id in enumerate(ids):
+                    if id in self.worConfig.IGNORED_TAGS:
+                        continue
+
                     pose = self.poseCalc.getPose3dFromTagID(id)
                     if pose is None:
                         return (None, None)
@@ -113,7 +115,6 @@ class WorbotsVision:
                         [corners[index][0][3][0], corners[index][0][3][1]]
                     ]
                     tag_ids.append(id)
-                    index +=1
             index = 0
             if len(ids)==1:
                 _, rvec, tvec, errors = cv2.solvePnPGeneric(self.objPoints, np.array(imgPoints), self.mtx, self.dist, flags=cv2.SOLVEPNP_IPPE_SQUARE)
