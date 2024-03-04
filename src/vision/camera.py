@@ -4,6 +4,7 @@ from typing import Any, Optional
 import cv2
 from cProfile import Profile
 from threading import Thread, Event
+import subprocess
 
 from config import ConfigPaths, WorbotsConfig
 from network.tables import WorbotsTables
@@ -84,11 +85,6 @@ class ThreadCamera:
             cmd = ""
             # Base v4l2 command
             cmd += f"gst-launch-1.0 -v v4l2src device=/dev/video{self.worConfig.CAMERA_ID} always-copy=false"
-            # Extra camera controls
-            # Convert to 100us units
-            # abs_exposure = int(self.worConfig.CAM_EXPOSURE * 1000 * 1000 / 100)
-            abs_exposure = int(self.worConfig.CAM_EXPOSURE * 312)
-            cmd += f" extra_controls=\"exposure_auto=1,exposure_absolute={abs_exposure}\""
             # JPEG video
             cmd += f" ! image/jpeg, width={self.worConfig.RES_W}, height={self.worConfig.RES_H}, format=MJPG, framerate={self.worConfig.CAM_FPS}/1"
             # Choose decoder based on presence of GPU
@@ -102,6 +98,12 @@ class ThreadCamera:
 
             self.cap = cv2.VideoCapture(cmd, cv2.CAP_GSTREAMER)
             self.startTime = time.time()
+
+            # Configure the camera using v4l2-ctl
+            subprocess.run("v4l2-ctl", "-c", f"exposure_auto=1")
+            subprocess.run("v4l2-ctl", "-c", f"exposure_absolute={self.worConfig.CAM_EXPOSURE}")
+            subprocess.run("v4l2-ctl", "-c", f"brightness={self.worConfig.CAM_BRIGHTNESS}")
+            subprocess.run("v4l2-ctl", "-c", f"contrast={self.worConfig.CAM_CONTRAST}")
         else:
             print("Initializing camera with default backend...")
             self.cap = cv2.VideoCapture(self.worConfig.CAMERA_ID)
@@ -128,6 +130,7 @@ class ThreadCamera:
 
     # Checks for remote config changes; should be run periodically
     def checkConfig(self, tables: WorbotsTables):
+        return
         changes = tables.exposureSubscriber.readQueue()
         # Get the latest config change, modify the config, and reinitialize
         # the camera

@@ -34,7 +34,9 @@ class WorbotsConfig:
     USE_GPU = False
     # Whether to use exact frame timestamps by querying the camera
     USE_EXACT_TIMESTAMPS = True
-    CAM_EXPOSURE = 1
+    CAM_EXPOSURE = 200
+    CAM_BRIGHTNESS = 1
+    CAM_CONTRAST = 32
     IGNORED_TAGS = []
 
     def __new__(cls, paths: ConfigPaths):
@@ -98,6 +100,12 @@ class WorbotsConfig:
             val = data.get("CamExposure")
             if val is not None:
                 cls.CAM_EXPOSURE = val
+            val = data.get("CamBrightness")
+            if val is not None:
+                cls.CAM_BRIGHTNESS = val
+            val = data.get("CamContrast")
+            if val is not None:
+                cls.CAM_CONTRAST = val
             val = data.get("IgnoredTags")
             if val is not None:
                 cls.IGNORED_TAGS = val
