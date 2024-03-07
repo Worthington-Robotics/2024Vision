@@ -29,8 +29,9 @@ class WorbotsVision:
         self.objPoints = np.array(self.obj_all).reshape(4,3)
 
         # self.detectorParams.cornerRefinementMethod = cv2.aruco.CORNER_REFINE_APRILTAG
-        # self.detectorParams.maxMarkerPerimeterRate = 3.5
-        self.detectorParams.minDistanceToBorder = 10
+        self.detectorParams.minMarkerPerimeterRate = 0.03
+        self.detectorParams.maxMarkerPerimeterRate = 0.0
+        self.detectorParams.minDistanceToBorder = 3
         self.detector.setDetectorParameters(self.detectorParams)
         self.detector.setDictionary(self.apriltagDict)
     

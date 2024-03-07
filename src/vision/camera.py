@@ -1,3 +1,4 @@
+import math
 from queue import Queue, Empty, Full
 import time
 from typing import Any, Optional
@@ -28,8 +29,17 @@ class WorbotsCamera:
 
     def __init__(self, configPaths: ConfigPaths, tables: WorbotsTables):
         self.stop = Event()
-        self.thread = Thread(target=runCameraThread, args=(
-            self.stop, configPaths, tables, self.queue,), name="Camera Thread", daemon=True)
+        self.thread = Thread(
+            target=runCameraThread,
+            args=(
+                self.stop,
+                configPaths,
+                tables,
+                self.queue,
+            ),
+            name="Camera Thread",
+            daemon=True,
+        )
         self.thread.start()
 
     def getFrame(self) -> Optional[TimedFrame]:
@@ -43,7 +53,9 @@ class WorbotsCamera:
         self.thread.join()
 
 
-def runCameraThread(stop: Event, configPaths: ConfigPaths, tables: WorbotsTables, out: Queue):
+def runCameraThread(
+    stop: Event, configPaths: ConfigPaths, tables: WorbotsTables, out: Queue
+):
     prof = Profile()
     config = WorbotsConfig(configPaths)
     if config.PROFILE:
@@ -53,6 +65,8 @@ def runCameraThread(stop: Event, configPaths: ConfigPaths, tables: WorbotsTables
     while not stop.is_set():
         frame = cam.getRawFrame()
         if frame is not None:
+            # Try to put a frame in the processing queue for the vision. If it is full,
+            # then that means the camera is running faster than the vision and we have to throw the frame away.
             try:
                 out.put_nowait(frame)
             except Full:
@@ -100,25 +114,34 @@ class ThreadCamera:
             self.startTime = time.time()
 
             # Configure the camera using v4l2-ctl
-            subprocess.run("v4l2-ctl", "-c", f"exposure_auto=1")
-            subprocess.run("v4l2-ctl", "-c", f"exposure_absolute={self.worConfig.CAM_EXPOSURE}")
-            subprocess.run("v4l2-ctl", "-c", f"brightness={self.worConfig.CAM_BRIGHTNESS}")
-            subprocess.run("v4l2-ctl", "-c", f"contrast={self.worConfig.CAM_CONTRAST}")
+            subprocess.run(["v4l2-ctl", "-c", f"exposure_auto=1"])
+            subprocess.run(
+                ["v4l2-ctl", "-c", f"exposure_absolute={self.worConfig.CAM_EXPOSURE}"]
+            )
+            subprocess.run(["v4l2-ctl", "-c", f"brightness={self.worConfig.CAM_BRIGHTNESS}"])
+            subprocess.run(["v4l2-ctl", "-c", f"contrast={self.worConfig.CAM_CONTRAST}"])
         else:
             print("Initializing camera with default backend...")
-            self.cap = cv2.VideoCapture(self.worConfig.CAMERA_ID)
+            # Use either MSMF or DSHOW on Windows. They both have benefits and drawbacks.
+            self.cap = cv2.VideoCapture(self.worConfig.CAMERA_ID, cv2.CAP_MSMF)
             self.startTime = time.time()
             self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, self.worConfig.RES_H)
             self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, self.worConfig.RES_W)
             # self.cap.set(cv2.CAP_PROP_BUFFERSIZE, 3)
             # self.cap.set(cv2.CAP_PROP_HW_ACCELERATION, 1.0)
             self.cap.set(cv2.CAP_PROP_FPS, self.worConfig.CAM_FPS)
-            self.cap.set(cv2.CAP_PROP_AUTO_EXPOSURE, 0.0)
-            self.cap.set(cv2.CAP_PROP_EXPOSURE, self.worConfig.CAM_EXPOSURE)
+            # Makes exposure manually controlled
+            self.cap.set(cv2.CAP_PROP_AUTO_EXPOSURE, 1.0)
+            # Windows uses a lookup table for exposure with 14 different values. Here we are choosing
+            # the closest value in the table by converting the exposure to seconds, then doing log_2 of it,
+            # then truncating it to an integer
+            exposure = int(math.log2(self.worConfig.CAM_EXPOSURE * 100 / 1e6))
+            self.cap.set(cv2.CAP_PROP_EXPOSURE, exposure)
+            self.cap.set(cv2.CAP_PROP_BRIGHTNESS, self.worConfig.CAM_BRIGHTNESS)
+            self.cap.set(cv2.CAP_PROP_CONTRAST, self.worConfig.CAM_CONTRAST)
 
         if self.cap.isOpened():
-            print(
-                f"Initialized camera with {self.cap.getBackendName()} backend")
+            print(f"Initialized camera with {self.cap.getBackendName()} backend")
             print(f"Camera running at {self.cap.get(cv2.CAP_PROP_FPS)} fps")
         else:
             print("Failed to initialize camera")

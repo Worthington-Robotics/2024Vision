@@ -1,3 +1,10 @@
+import os
+
+# This environment variable is set here before we import cv2 because it only applies to the
+# current process and OpenCV needs to read it. Without this flag, MSMF backend cameras take over a minute
+# to initialize
+os.environ["OPENCV_VIDEOIO_MSMF_ENABLE_HW_TRANSFORMS"] = "0"
+
 import cProfile
 from queue import Empty
 import queue

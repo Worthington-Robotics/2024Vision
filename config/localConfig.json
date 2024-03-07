@@ -5,7 +5,7 @@
 	"SimMode": true,
 	"ResolutionW": 1600,
 	"ResolutionH": 1200,
-	"CameraFPS": 30,
+	"CameraFPS": 50,
 	"TagSizeinMeters": 0.1651,
 	"UseGStreamer": false,
 	"RunOnce": false,
@@ -14,5 +14,8 @@
 	"ShowImage": true,
 	"PrintFPS": true,
 	"Profile": false,
-	"UseExactTimestamps": true
+	"UseExactTimestamps": true,
+	"CamExposure": 200,
+	"CamBrightness": 2.0,
+	"CamContrast": 48
 }
