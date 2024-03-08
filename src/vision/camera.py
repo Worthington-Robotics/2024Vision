@@ -10,14 +10,14 @@ import subprocess
 from config import ConfigPaths, WorbotsConfig
 from network.tables import WorbotsTables
 
-# A frame along with the time it was captured
-
 
 class TimedFrame:
-    frame: Any
+    """A frame along with the time it was captured"""
+
+    frame: cv2.Mat
     timestamp: float
 
-    def __init__(self, frame: Any, timestamp: float):
+    def __init__(self, frame: cv2.Mat, timestamp: float):
         self.frame = frame
         self.timestamp = timestamp
 
@@ -118,8 +118,12 @@ class ThreadCamera:
             subprocess.run(
                 ["v4l2-ctl", "-c", f"exposure_absolute={self.worConfig.CAM_EXPOSURE}"]
             )
-            subprocess.run(["v4l2-ctl", "-c", f"brightness={self.worConfig.CAM_BRIGHTNESS}"])
-            subprocess.run(["v4l2-ctl", "-c", f"contrast={self.worConfig.CAM_CONTRAST}"])
+            subprocess.run(
+                ["v4l2-ctl", "-c", f"brightness={self.worConfig.CAM_BRIGHTNESS}"]
+            )
+            subprocess.run(
+                ["v4l2-ctl", "-c", f"contrast={self.worConfig.CAM_CONTRAST}"]
+            )
         else:
             print("Initializing camera with default backend...")
             # Use either MSMF or DSHOW on Windows. They both have benefits and drawbacks.

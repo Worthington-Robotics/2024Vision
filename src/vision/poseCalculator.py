@@ -35,6 +35,7 @@ class PoseCalculator:
             ))
 
     def wpiTranslationToOpenCV(self, translation: Translation3d) -> List[float]:
+        """Converts a WPILib Translation3d to an OpenCV array"""
         return [-translation.Y(), -translation.Z(), translation.X()]
 
     def getPose3dFromTagID(self, id: int) -> Optional[Pose3d]:
