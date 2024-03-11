@@ -32,6 +32,7 @@ class WorbotsVision:
         # self.detectorParams.maxMarkerPerimeterRate = 0.0
         self.detectorParams.minDistanceToBorder = 3
         self.detector.setDetectorParameters(self.detectorParams)
+        self.detector.setDictionary(self.apriltagDict)
 
     def processFrame(
         self, frame: Optional[cv2.Mat]

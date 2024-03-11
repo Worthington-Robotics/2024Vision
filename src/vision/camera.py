@@ -114,16 +114,10 @@ class ThreadCamera:
             self.startTime = time.time()
 
             # Configure the camera using v4l2-ctl
-            subprocess.run(["v4l2-ctl", "-c", f"exposure_auto=1"])
-            subprocess.run(
-                ["v4l2-ctl", "-c", f"exposure_absolute={self.worConfig.CAM_EXPOSURE}"]
-            )
-            subprocess.run(
-                ["v4l2-ctl", "-c", f"brightness={self.worConfig.CAM_BRIGHTNESS}"]
-            )
-            subprocess.run(
-                ["v4l2-ctl", "-c", f"contrast={self.worConfig.CAM_CONTRAST}"]
-            )
+            v4l2_conf(self.worConfig.CAMERA_ID, "exposure_auto", "1")
+            v4l2_conf(self.worConfig.CAMERA_ID, "exposure_absolute", self.worConfig.CAM_EXPOSURE)
+            v4l2_conf(self.worConfig.CAMERA_ID, "brightness", self.worConfig.CAM_BRIGHTNESS)
+            v4l2_conf(self.worConfig.CAMERA_ID, "contrast", self.worConfig.CAM_CONTRAST)
         else:
             print("Initializing camera with default backend...")
             # Use either MSMF or DSHOW on Windows. They both have benefits and drawbacks.
@@ -181,3 +175,7 @@ class ThreadCamera:
             print("Camera disconnected!")
             self.reconnect()
             return None
+
+
+def v4l2_conf(cam_id: int, property: str, value: str):
+    subprocess.run(["v4l2-ctl", "-d", str(cam_id), "-c", f"{property}={value}"])
