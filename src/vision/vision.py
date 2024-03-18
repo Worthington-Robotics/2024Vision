@@ -27,7 +27,8 @@ class WorbotsVision:
         self.obj_all = self.obj_1 + self.obj_2 + self.obj_3 + self.obj_4
         self.objPoints = np.array(self.obj_all).reshape(4, 3)
 
-        # self.detectorParams.cornerRefinementMethod = cv2.aruco.CORNER_REFINE_APRILTAG
+        self.detectorParams.cornerRefinementMethod = cv2.aruco.CORNER_REFINE_CONTOUR
+        self.detectorParams.cornerRefinementMaxIterations = 30
         self.detectorParams.minMarkerPerimeterRate = 0.03
         # self.detectorParams.maxMarkerPerimeterRate = 0.0
         self.detectorParams.minDistanceToBorder = 3
