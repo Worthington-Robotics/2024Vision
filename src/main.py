@@ -1,4 +1,6 @@
+import math
 import os
+from pathlib import Path
 
 # This environment variable is set here before we import cv2 because it only applies to the
 # current process and OpenCV needs to read it. Without this flag, MSMF backend cameras take over a minute
@@ -11,7 +13,7 @@ import queue
 from threading import Thread, Event
 import sys
 import time
-from typing import Any, Optional
+from typing import Any, List, Optional
 import cv2
 from wpimath.geometry import *
 from cscore import CameraServer
@@ -109,11 +111,25 @@ class Output:
     thread: Thread
     inQueue = queue.Queue()
     stop: Event
+    lastSnapshotTime = [0.0]
 
     def __init__(self, configPaths: ConfigPaths):
+        self.removeOldSnapshots()
+
         self.stop = Event()
-        self.thread = Thread(target=runOutput, args=(self.stop, configPaths, self.inQueue,), name="Vision Output", daemon=True)
+        self.thread = Thread(target=runOutput, args=(self.stop, configPaths, self.inQueue, self.lastSnapshotTime), name="Vision Output", daemon=True)
         self.thread.start()
+
+    def removeOldSnapshots(self):
+        """Removes old snapshot images from the snapshots folder"""
+        folder = "./snapshots"
+        files = os.listdir(folder)
+        files.sort()
+        maxCount = 10
+        if len(files) > maxCount:
+            toRemove = files[:maxCount]
+            for file in toRemove:
+                os.remove(folder + "/" + file)
 
     def sendData(self, data: OutputData):
         # If they are all none, there is no need to put anything in the queue
@@ -125,11 +141,11 @@ class Output:
         self.stop.set()
         self.thread.join()
 
-def runOutput(stop: Event, configPaths: ConfigPaths, inQueue: queue.Queue):
+def runOutput(stop: Event, configPaths: ConfigPaths, inQueue: queue.Queue, lastSnapshotTime: List[float]):
     config = WorbotsConfig(configPaths)
     network = WorbotsTables(configPaths)
     CameraServer.enableLogging()
-    output = CameraServer.putVideo("Module"+str(config.MODULE_ID), config.RES_W, config.RES_H)
+    csOutput = CameraServer.putVideo("Module"+str(config.MODULE_ID), config.RES_W, config.RES_H)
     print(f"Optimized used?: {cv2.useOptimized()}")
     network.sendConfig()
     
@@ -146,7 +162,21 @@ def runOutput(stop: Event, configPaths: ConfigPaths, inQueue: queue.Queue):
 
         # Camera frames
         if data.frame is not None:
-            output.putFrame(data.frame)
+            csOutput.putFrame(data.frame)
+
+            # Record snapshots
+            if config.SNAPSHOT_INTERVAL != -1:
+                currentTime = time.time()
+                if currentTime - lastSnapshotTime[0] > config.SNAPSHOT_INTERVAL:
+                    lastSnapshotTime[0] = currentTime
+                    try:
+                        path = Path("./snapshots")
+                        path.mkdir(parents=True, exist_ok=True)
+                        cv2.imwrite(str(path.joinpath(f"{time.time_ns()}.jpg")), data.frame)
+                    except Exception as e:
+                        print(f"Failed to record snapshot due to error:\n{e}")
+
+            # Show image on screen
             if config.SHOW_IMAGE:
                 cv2.imshow('image', data.frame)
                 if cv2.waitKey(1) & 0xFF == ord('q'):

@@ -38,6 +38,7 @@ class WorbotsConfig:
     CAM_BRIGHTNESS = 1
     CAM_CONTRAST = 32
     IGNORED_TAGS = []
+    SNAPSHOT_INTERVAL = -1
 
     def __new__(cls, paths: ConfigPaths):
         with open(paths.path, "r") as read_file:
@@ -109,6 +110,9 @@ class WorbotsConfig:
             val = data.get("IgnoredTags")
             if val is not None:
                 cls.IGNORED_TAGS = val
+            val = data.get("SnapshotInterval")
+            if val is not None:
+                cls.SNAPSHOT_INTERVAL = val
         return super(WorbotsConfig, cls).__new__(cls)
 
     def __init__(self, paths: ConfigPaths):

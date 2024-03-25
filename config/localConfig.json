@@ -1,5 +1,5 @@
 {
-	"CameraId": 1,
+	"CameraId": 0,
 	"TeamNumber": 4145,
 	"ModuleId": 0,
 	"SimMode": true,
@@ -17,5 +17,6 @@
 	"UseExactTimestamps": true,
 	"CamExposure": 200,
 	"CamBrightness": 2.0,
-	"CamContrast": 48
+	"CamContrast": 48,
+	"SnapshotInterval": 3
 }
