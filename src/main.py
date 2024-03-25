@@ -125,7 +125,7 @@ class Output:
         folder = "./snapshots"
         files = os.listdir(folder)
         files.sort()
-        maxCount = 10
+        maxCount = 150
         if len(files) > maxCount:
             toRemove = files[:maxCount]
             for file in toRemove:
