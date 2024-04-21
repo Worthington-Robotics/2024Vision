@@ -30,7 +30,7 @@ class WorbotsTables:
         self.moduleTable = self.ntInstance.getTable(f"/module{self.config.MODULE_ID}")
         table = self.moduleTable.getSubTable("output")
         configTable = self.moduleTable.getSubTable("config")
-        self.dataPublisher = table.getDoubleArrayTopic("data").publish(ntcore.PubSubOptions())
+        self.dataPublisher = table.getDoubleArrayTopic("data").publish(ntcore.PubSubOptions(periodic=0.02))
         self.fpsPublisher = table.getDoubleTopic("fps").publish(ntcore.PubSubOptions())
         configTable.getBooleanTopic("liveCalib").publish().set(False)
         self.calibListener = configTable.getBooleanTopic("liveCalib").subscribe(False)
